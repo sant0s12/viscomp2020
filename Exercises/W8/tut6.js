@@ -66,6 +66,7 @@ function main() {
     function loop(now) { 
         const deltaTime = now - then;
         then = now;
+        globalTime += 0.02;
         draw(deltaTime);
         window.requestAnimationFrame(loop); // https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame
     }; 
@@ -94,7 +95,7 @@ function main() {
         
         // // {uForegroundColor} is a uniform vec3 specifying the triangle's color;
         let col = BLACK;
-        let CASE = 4;
+        let CASE = 2;
         if (CASE == 0) {
             col = WHITE;
         } else if (CASE == 1) {
@@ -118,8 +119,6 @@ function main() {
                 console.log(points[0]);
                 //points[i][0] = Math.min(1, Math.abs(points[i][0] + speed * direction[0]));
                 //points[i][1] = Math.min(1, Math.abs(points[i][1] + speed * direction[1]));
-                points[i][0] += .1;
-                points[i][1] += dt;
 
                 //if (Math.abs(points[i][0]) == 1) direction[0] *= -1;
                 //if (Math.abs(points[i][1]) == 1) direction[1] *= -1;

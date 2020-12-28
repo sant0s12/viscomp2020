@@ -17,9 +17,17 @@ function set_(mat, r, c, val) {
 
 function getTriangleModelMatrix() { 
     var M_triangle = mat4.create();
+
+    mat4.copy(M_triangle, getCameraMatrix(2));
     //
     // TODO: You can answer Part 1 + 2 of the assignment here.
     //
+    //var s = Math.cos(globalTime); //Math.cos(globalTime);
+    var T = mat4.create();
+    set_(T, 1, 3, .3);
+    set_(T, 0, 3, -.5);
+    mat4.rotateY(M_triangle, M_triangle, globalTime);
+    mat4.multiply(M_triangle, M_triangle, T);
     return M_triangle;
 }
 
