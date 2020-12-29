@@ -81,30 +81,52 @@ const phongVertexShaderSource = `
   // Ex1: Implmenent Phong shading
 
   attribute vec3 vPosition;
+  attribute vec3 vNormal;
 
   uniform mat4 uProjectionMatrix, uModelViewMatrix;
 
+  varying vec3 normal;
+  varying vec3 pos;
+  varying vec3 gPos;
+
   void main(){
       gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(vPosition, 1.0);
+      pos = vPosition;
+
+      vec4 gPos4 = uModelViewMatrix * vec4(vPosition, 1.0);
+      gPos = vec3(gPos4) / gPos4.w;
+
+      normal = vec3(uModelViewMatrix * vec4(vNormal, 0.0));
   }
   `;
 
 const phongFragmentShaderSource = `
-  precision mediump float; // set float to medium precision
+  precision highp float; // set float to medium precision
 
   uniform vec3 lightPos;
           
   const vec3 ambientColor = vec3(0.4, 0., 0.4);
   const vec3 diffuseColor = vec3(0.6, 0., 0.6);
   const vec3 specColor = vec3(0.6, 0.6, 0.6);
+
+  varying vec3 normal;
+  varying vec3 pos;
+  varying vec3 gPos;
           
   void main(void) {
-          
+
       // ambient term
       vec3 ambient = ambientColor; 
 
+      // diffuse
+      vec3 diffuse = diffuseColor * 0.5 * max(0.0, dot(normalize(normal), normalize(lightPos - gPos)));
+
+      // specular
+      vec3 R = 2*normalize(dot(lightPos, normal))*normal - normalize(lightPos)
+      vec3 spec = specColor * 0.5 * pow(dot) 
+
       // combine to find lit color
-      vec3 litColor = ambient; 
+      vec3 litColor = ambient + diffuse; 
       
       gl_FragColor = vec4(litColor, 1.0);
       
@@ -612,7 +634,7 @@ function main() {
           "  object move  : arrows",
           "  object rotate: shift + leftclick + drag",
           "  auto-rotate  : space",
-          "  move light   : IJKL",
+         "  move light   : IJKL",
         ];
         for (var i = 0; i < controlText.length; i++) {
           ctx.fillText(controlText[i], 0, (i+1)*lineHeight);
@@ -652,6 +674,12 @@ function main() {
 
     function normalsToShader(object, shaderProgram) {
       // Ex1: pass normal information to shader!
+      const normalBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(object.vertexNormals), gl.STATIC_DRAW);
+      const vNormal = gl.getAttribLocation(shaderProgram, "vNormal");
+      gl.vertexAttribPointer(vNormal, 3, gl.FLOAT, false, 0, 0);
+      gl.enableVertexAttribArray(vNormal); 
     }
 
     function indicesToShader(object) {

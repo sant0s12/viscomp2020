@@ -106,6 +106,9 @@ const phongFragmentShaderSource = `
   // geometry properties
   varying vec3 vertPos; // world xyz of fragment
   varying vec3 normalInterp; // normal of fragment
+
+  uniform mat4 uViewMatrix;
+  uniform highp mat4 uModelViewMatrix;
           
   void main(void) {
           
@@ -114,7 +117,12 @@ const phongFragmentShaderSource = `
               
       // diffuse term
       vec3 normal = normalize(normalInterp); 
-      vec3 light = normalize(lightPos - vertPos);
+
+      vec4 vLightPos4 = uViewMatrix * vec4(lightPos, 1.);
+      vec3 vLightPos = vec3(vLightPos4) / vLightPos4.w;
+
+      vec3 light = normalize(vLightPos - vertPos);
+
       float lambert = max(0.0, dot(normal,light));
       vec3 diffuse = diffuseColor * lambert; // diffuse term
               
@@ -124,7 +132,7 @@ const phongFragmentShaderSource = `
       vec3 specular = specColor * pow(max(0.0, dot(eye, r)), 10.0);
               
       // combine to find lit color
-      vec3 litColor = ambient + diffuse + specular; 
+      vec3 litColor = ambient + diffuse; // + specular; 
       
       gl_FragColor = vec4(litColor, 1.0);
       
@@ -167,6 +175,8 @@ const phongTexFragmentShaderSource = `
   uniform sampler2D uSampler;
           
   const vec3 specColor = vec3(0.6, 0.6, 0.6);
+
+  uniform mat4 uViewMatrix;
               
   void main() {
 
@@ -180,7 +190,12 @@ const phongTexFragmentShaderSource = `
       // diffuse term
       vec3 diffuseColor = 0.7*texColor.rgb;
       vec3 normal = normalize(normalInterp); 
-      vec3 light = normalize(lightPos - vertPos);
+
+      vec4 vLightPos4 = uViewMatrix * vec4(lightPos, 1.);
+      vec3 vLightPos = vec3(vLightPos4) / vLightPos4.w;
+
+      vec3 light = normalize(vLightPos - vertPos);
+
       float lambert = max(0.0, dot(normal,light));
       vec3 diffuse = diffuseColor * lambert; // diffuse term
               
@@ -352,8 +367,12 @@ function setPVM(P, V, M) {
         gl.useProgram(shaderProgram);
         const uProjectionMatrix = gl.getUniformLocation(shaderProgram, 'uProjectionMatrix');
         const uModelViewMatrix  = gl.getUniformLocation(shaderProgram, 'uModelViewMatrix');
+        const uViewMatrix  = gl.getUniformLocation(shaderProgram, 'uViewMatrix');
         gl.uniformMatrix4fv(uProjectionMatrix, false, P);
         gl.uniformMatrix4fv(uModelViewMatrix, false, VM);
+        let VMInv = mat4.create();
+        mat4.invert(VMInv, VM);
+        gl.uniformMatrix4fv(uViewMatrix, false, V);
     });
 } 
 
